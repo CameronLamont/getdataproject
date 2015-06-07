@@ -12,52 +12,48 @@
 library(stringr)
 library(dplyr)
 
+# read in X data set feature list
 X_features <- read.delim("./UCI HAR Dataset/features.txt",header=FALSE,sep=" ")
 
+# setup input files for X and Y data sets 
 X_names <- c("./UCI HAR Dataset/test/X_test.txt","./UCI HAR Dataset/train/X_train.txt")
 
 Y_names <- c("./UCI HAR Dataset/test/Y_test.txt","./UCI HAR Dataset/train/Y_train.txt")
+
+# create single feature list for Y data set
 Y_features <- c('Y')
 
+# function to load a fileName into a dataframe and attach features
 loadDataSet <- function(fileName, features) {
     
-    rawFile <- readLines(fileName)
-    rawFile <- gsub("[ ][ ]*"," ", rawFile)
+    # TODO - speed up as this is quite slow and 
+    # a dplyr method wasn't working out
     
+    # using readLines with 
+    rawFile <- readLines(fileName)
+    # gsub to swap multiple spaces for single
+    rawFile <- gsub("[ ][ ]*"," ", rawFile)
+    # trim trailing whitespace
     rawFile <- str_trim(rawFile)
     
+    # push raw file into read.delim via a textConnection
     df <- read.delim(textConnection(rawFile),header=FALSE,sep=" ")
     
+    # assign feature list
     names(df) = features
+    # create additional feature to store filename
     df$sourceFileName <- fileName
     df
 }
 
-
+# use rbind/lapply to load X and Y datasets from multiple files into X and Y respectively
 X <- do.call(rbind,lapply(X=X_names,FUN=loadDataSet,features=X_features[,2]))
 Y <- do.call(rbind,lapply(X=Y_names,FUN=loadDataSet,features=Y_features))
 
-X <- do.call(rbind,lapply(X_names,function(fileName){ rawFile <- readLines(fileName)
-                                 rawFile <- gsub("[ ][ ]*"," ", rawFile)
-                                 
-                                 rawFile <- str_trim(rawFile)
-                                 
-                                 df <- read.delim(textConnection(rawFile),header=FALSE,sep=" ")
-                                 
-                                 names(df) = X_features[,2]
-                                 df$sourceFileName <- fileName
-                                 df}))
+# tag rows with 'test' in them with DataGroup=test, else assume 'training'
 X$DataGroup <- ifelse('test' %in% X$sourceFileName,'test','training')
 
-Y <- do.call(rbind,lapply(Y_names,function(fileName){ rawFile <- readLines(fileName)
-                                                      rawFile <- gsub("[ ][ ]*"," ", rawFile)
-                                                      
-                                                      rawFile <- str_trim(rawFile)
-                                                      
-                                                      df <- read.delim(textConnection(rawFile),header=FALSE,sep=" ")
-                                                      
-                                                      names(df) = c('Y')
-                                                      df$sourceFileName <- fileName
-                                                      df}))
+
+# tag rows with 'test' in them with DataGroup=test, else assume 'training'
 Y$DataGroup <- ifelse('test' %in% Y$sourceFileName,'test','training')
 
