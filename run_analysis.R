@@ -23,6 +23,9 @@ Y_names <- c("./UCI HAR Dataset/test/Y_test.txt","./UCI HAR Dataset/train/Y_trai
 # create single feature list for Y data set
 Y_features <- c('Y')
 
+subject_names <- c("./UCI HAR Dataset/test/subject_test.txt","./UCI HAR Dataset/train/subject_train.txt")
+subject_features <- c('subjectid')
+
 # function to load a fileName into a dataframe and attach features
 loadDataSet <- function(fileName, features) {
     
@@ -49,11 +52,25 @@ loadDataSet <- function(fileName, features) {
 # use rbind/lapply to load X and Y datasets from multiple files into X and Y respectively
 X <- do.call(rbind,lapply(X=X_names,FUN=loadDataSet,features=X_features[,2]))
 Y <- do.call(rbind,lapply(X=Y_names,FUN=loadDataSet,features=Y_features))
+subject <- do.call(rbind,lapply(X=subject_names,FUN=loadDataSet,features=subject_features))
 
 # tag rows with 'test' in them with DataGroup=test, else assume 'training'
 X$DataGroup <- ifelse('test' %in% X$sourceFileName,'test','training')
 
-
 # tag rows with 'test' in them with DataGroup=test, else assume 'training'
 Y$DataGroup <- ifelse('test' %in% Y$sourceFileName,'test','training')
+
+# tag rows with 'test' in them with DataGroup=test, else assume 'training'
+subject$DataGroup <- ifelse('test' %in% subject$sourceFileName,'test','training')
+
+# add subjectid to X and Y
+ds <- cbind(subject[,1],X,Y[,1])
+names(ds)[1] <- names(subject)[1]
+names(ds)[length(names(ds))] <- names(Y)[1]
+
+measures <- c('mean','std')
+
+# get all mean and std columns
+match(names(ds),grep("(mean)|(std)",X_features$V2,value=TRUE))
+
 
