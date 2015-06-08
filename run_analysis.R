@@ -11,6 +11,7 @@
 
 library(stringr)
 library(dplyr)
+#library(data.table)
 
 # read in X data set feature list
 X_features <- read.delim("./UCI HAR Dataset/features.txt",header=FALSE,sep=" ")
@@ -29,21 +30,26 @@ subject_features <- c('subjectid')
 # function to load a fileName into a dataframe and attach features
 loadDataSet <- function(fileName, features) {
     
-    # TODO - speed up as this is quite slow and 
-    # a dplyr method wasn't working out
+#     # TODO - speed up as this is quite slow and 
+#     # a dplyr method wasn't working out
+#     
+#     # using readLines with 
+#     rawFile <- readLines(fileName)
+#     # gsub to swap multiple spaces for single
+#     rawFile <- gsub("[ ][ ]*"," ", rawFile)
+#     # trim trailing whitespace
+#     rawFile <- str_trim(rawFile)
+#     
+#     ###df <- fread(fileName)
+#     
+#     # push raw file into read.delim via a textConnection
+#     df <- read.delim(textConnection(rawFile),header=FALSE,sep=" ")
     
-    # using readLines with 
-    rawFile <- readLines(fileName)
-    # gsub to swap multiple spaces for single
-    rawFile <- gsub("[ ][ ]*"," ", rawFile)
-    # trim trailing whitespace
-    rawFile <- str_trim(rawFile)
-    
-    # push raw file into read.delim via a textConnection
-    df <- read.delim(textConnection(rawFile),header=FALSE,sep=" ")
+    # set sep to "" to mean any number of whitespace
+    df <- read.delim(fileName,header=FALSE,sep="")
     
     # assign feature list
-    names(df) = features
+    names(df) = make.names(features,unique=TRUE)
     # create additional feature to store filename
     df$sourceFileName <- fileName
     df
@@ -71,6 +77,11 @@ names(ds)[length(names(ds))] <- names(Y)[1]
 measures <- c('mean','std')
 
 # get all mean and std columns
-match(names(ds),grep("(mean)|(std)",X_features$V2,value=TRUE))
+cols <- names(ds)[grepl("(subjectid)|(mean)|(std)|(DataGroup)",names(ds))]
+
+match(cols,names(ds))
+
+select(ds,(match(cols,names(ds))))
 
 
+select(ds,subjectid,contains("mean"),contains("std"))
