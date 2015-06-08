@@ -1,7 +1,7 @@
 # Getting and Cleaning Data Course Project
 
 # You should create one R script called run_analysis.R that does the following. 
-# 1 Merges the train and the test sets to create one data set.
+# 1 Merges the training and the test sets to create one data set.
 # 2 Extracts only the measurements on the mean and standard deviation for each 
 #   measurement. 
 # 3 Uses descriptive activity names to name the activities in the data set
@@ -23,7 +23,7 @@ X_names <- dir("./UCI HAR Dataset",pattern="^[Xx].*\\.txt",full.names=TRUE,recur
 Y_names <- dir("./UCI HAR Dataset",pattern="^[Yy].*\\.txt",full.names=TRUE,recursive=TRUE)
 
 # create single feature list for Y data set
-Y_features <- c('actitiyid')
+Y_features <- c('activityid')
 
 activity_names <- c('./UCI HAR Dataset/activity_labels.txt')
 activity_features <- c('activityid','activity')
@@ -68,41 +68,21 @@ Y <- do.call(rbind,lapply(X=Y_names,FUN=loadDataSet,features=Y_features))
 subject <- do.call(rbind,lapply(X=subject_names,FUN=loadDataSet,features=subject_features))
 activity_labels <- do.call(rbind,lapply(X=activity_names,FUN=loadDataSet,features=activity_features))
 
+activity <- merge(x=Y,y=activity_labels,by="activityid",all=TRUE)
 
 body_acc_x <- do.call(rbind,lapply(X=body_acc_x_names,FUN=loadDataSet,features=1:128,name_prefix="body_acc_x_"))
 body_acc_y <- do.call(rbind,lapply(X=body_acc_y_names,FUN=loadDataSet,features=1:128,name_prefix="body_acc_y_"))
 body_acc_z <- do.call(rbind,lapply(X=body_acc_z_names,FUN=loadDataSet,features=1:128,name_prefix="body_acc_z_"))
-# 
-# body_acc_x <- do.call(rbind,lapply(X=body_acc_x_names,FUN=loadDataSet,features=paste0("body_acc_x_",1:128)))
-# names(body_acc_x)[129:130] <- paste0("body_acc_x_",names(body_acc_x)[129:130])
-# body_acc_y <- do.call(rbind,lapply(X=body_acc_y_names,FUN=loadDataSet,features=paste0("body_acc_y_",1:128)))
-# names(body_acc_y)[129:130] <- paste0("body_acc_y_",names(body_acc_y)[129:130])
-# body_acc_z <- do.call(rbind,lapply(X=body_acc_z_names,FUN=loadDataSet,features=paste0("body_acc_z_",1:128)))
-# names(body_acc_y)[129:130] <- paste0("body_acc_z_",names(body_acc_z)[129:130])
 
 body_gyro_x <- do.call(rbind,lapply(X=body_gyro_x_names,FUN=loadDataSet,features=1:128,name_prefix="body_gyro_x_"))
 body_gyro_y <- do.call(rbind,lapply(X=body_gyro_y_names,FUN=loadDataSet,features=1:128,name_prefix="body_gyro_y_"))
 body_gyro_z <- do.call(rbind,lapply(X=body_gyro_z_names,FUN=loadDataSet,features=1:128,name_prefix="body_gyro_z_"))
 
-# body_gyro_x <- do.call(rbind,lapply(X=body_gyro_x_names,FUN=loadDataSet,features=paste0("body_gyro_x_",1:128)))
-# names(body_gyro_x)[129:130] <- paste0("body_gyro_x_",names(body_gyro_x)[129:130])
-# body_gyro_y <- do.call(rbind,lapply(X=body_gyro_y_names,FUN=loadDataSet,features=paste0("body_gyro_y_",1:128)))
-# names(body_gyro_y)[129:130] <- paste0("body_gyro_y_",names(body_gyro_y)[129:130])
-# body_gyro_z <- do.call(rbind,lapply(X=body_gyro_z_names,FUN=loadDataSet,features=paste0("body_gyro_z_",1:128)))
-# names(body_gyro_z)[129:130] <- paste0("body_gyro_z_",names(body_gyro_z)[129:130])
-
-total_acc_x <- do.call(rbind,lapply(X=total_acc_x_names,FUN=loadDataSet,features=1:128,name_prefix="total_acc_z_"))
+total_acc_x <- do.call(rbind,lapply(X=total_acc_x_names,FUN=loadDataSet,features=1:128,name_prefix="total_acc_x_"))
 total_acc_y <- do.call(rbind,lapply(X=total_acc_y_names,FUN=loadDataSet,features=1:128,name_prefix="total_acc_y_"))
-total_acc_y <- do.call(rbind,lapply(X=total_acc_z_names,FUN=loadDataSet,features=1:128,name_prefix="total_acc_z_"))
+total_acc_z <- do.call(rbind,lapply(X=total_acc_z_names,FUN=loadDataSet,features=1:128,name_prefix="total_acc_z_"))
 
-# total_acc_x <- do.call(rbind,lapply(X=total_acc_x_names,FUN=loadDataSet,features=paste0("total_acc_z_",1:128)))
-# names(total_acc_x)[129:130] <- paste0("total_acc_x_",names(total_acc_x)[129:130])
-# total_acc_y <- do.call(rbind,lapply(X=total_acc_y_names,FUN=loadDataSet,features=paste0("total_acc_z_",1:128)))
-# names(total_acc_y)[129:130] <- paste0("total_acc_y_",names(total_acc_y)[129:130])
-# total_acc_z <- do.call(rbind,lapply(X=total_acc_z_names,FUN=loadDataSet,features=paste0("total_acc_z_",1:128)))
-# names(total_acc_z)[129:130] <- paste0("total_acc_z_",names(total_acc_z)[129:130])
-
-# combine all inertial signals into single data frame with subject id
+# combine all inertial signals into single data frame
 inertial_signals <- cbind(body_acc_x,body_acc_y,body_acc_z,
                           body_gyro_x,body_gyro_y,body_gyro_z,
                           total_acc_x,total_acc_y,total_acc_z)
@@ -123,10 +103,19 @@ names(inertial_signals) = c(names(body_acc_x),names(body_acc_y),
 # # tag rows with 'test' in them with DataGroup=test, else assume 'train'
 # subject$DataGroup <- ifelse(grepl('test',subject$sourceFileName),'test','train')
 
-# add subjectid to X and Y
-ds <- cbind(subject[,1],X,Y[,1])
-names(ds)[1] <- names(subject)[1]
-names(ds)[length(names(ds))] <- names(Y)[1]
+# add subjectid to X and activity
+ds_names <- c(names(subject)[1],names(X),c("activityid","activity"))
+#ds <- cbind(subject[,1],X,Y[,1])
+ds <- cbind(subject[,1],X,activity[,c("activityid","activity")])
+
+
+# names(ds)[1] <- names(subject)[1]
+# names(ds)[length(names(ds))] <- names(Y)[1]
+names(ds) <- ds_names
+
+ds <- cbind(ds,inertial_signals)
+names(ds) <- c(ds_names,names(inertial_signals))
+
 
 #measures <- c('mean','std')
 
@@ -140,13 +129,4 @@ names(ds)[length(names(ds))] <- names(Y)[1]
 
 #ds %>% select(subjectid,contains("mean"),contains("std")) %>% 
 #    dplyr::group_by(subjectid) %>% dplyr::summarize(contains("mean"),contains("std"))
-
-
-body_acc_x_test <- read.delim("./UCI HAR Dataset/test/Inertial Signals/body_acc_x_test.txt",header=FALSE,sep="")
-body_acc_y_test <- read.delim("./UCI HAR Dataset/test/Inertial Signals/body_acc_y_test.txt",header=FALSE,sep="")
-body_acc_z_test <- read.delim("./UCI HAR Dataset/test/Inertial Signals/body_acc_z_test.txt",header=FALSE,sep="")
-
-body_acc_x_train <- read.delim("./UCI HAR Dataset/train/Inertial Signals/body_acc_x_train.txt",header=FALSE,sep="")
-body_acc_y_train <- read.delim("./UCI HAR Dataset/train/Inertial Signals/body_acc_y_train.txt",header=FALSE,sep="")
-body_acc_z_train <- read.delim("./UCI HAR Dataset/train/Inertial Signals/body_acc_z_train.txt",header=FALSE,sep="")
 
