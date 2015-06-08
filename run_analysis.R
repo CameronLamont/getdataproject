@@ -27,29 +27,18 @@ Y_features <- c('Y')
 subject_names <- c("./UCI HAR Dataset/test/subject_test.txt","./UCI HAR Dataset/train/subject_train.txt")
 subject_features <- c('subjectid')
 
+activity_names <- c('./UCI HAR Dataset/activity_labels.txt')
+activity_features <- c('activityid','activity')
+
 # function to load a fileName into a dataframe and attach features
 loadDataSet <- function(fileName, features) {
-    
-#     # TODO - speed up as this is quite slow and 
-#     # a dplyr method wasn't working out
-#     
-#     # using readLines with 
-#     rawFile <- readLines(fileName)
-#     # gsub to swap multiple spaces for single
-#     rawFile <- gsub("[ ][ ]*"," ", rawFile)
-#     # trim trailing whitespace
-#     rawFile <- str_trim(rawFile)
-#     
-#     ###df <- fread(fileName)
-#     
-#     # push raw file into read.delim via a textConnection
-#     df <- read.delim(textConnection(rawFile),header=FALSE,sep=" ")
-    
+
     # set sep to "" to mean any number of whitespace
     df <- read.delim(fileName,header=FALSE,sep="")
     
-    # assign feature list
+    # assign feature list - make unique
     names(df) = make.names(features,unique=TRUE)
+    
     # create additional feature to store filename
     df$sourceFileName <- fileName
     df
@@ -60,28 +49,41 @@ X <- do.call(rbind,lapply(X=X_names,FUN=loadDataSet,features=X_features[,2]))
 Y <- do.call(rbind,lapply(X=Y_names,FUN=loadDataSet,features=Y_features))
 subject <- do.call(rbind,lapply(X=subject_names,FUN=loadDataSet,features=subject_features))
 
-# tag rows with 'test' in them with DataGroup=test, else assume 'training'
-X$DataGroup <- ifelse('test' %in% X$sourceFileName,'test','training')
+activity_labels <- do.call(rbind,lapply(X=activity_names,FUN=loadDataSet,features=activity_features))
 
 # tag rows with 'test' in them with DataGroup=test, else assume 'training'
-Y$DataGroup <- ifelse('test' %in% Y$sourceFileName,'test','training')
+X$DataGroup <- ifelse(grepl('test', X$sourceFileName),'test','training')
 
 # tag rows with 'test' in them with DataGroup=test, else assume 'training'
-subject$DataGroup <- ifelse('test' %in% subject$sourceFileName,'test','training')
+Y$DataGroup <- ifelse(grepl('test',Y$sourceFileName),'test','training')
+
+# tag rows with 'test' in them with DataGroup=test, else assume 'training'
+subject$DataGroup <- ifelse(grepl('test',subject$sourceFileName),'test','training')
 
 # add subjectid to X and Y
 ds <- cbind(subject[,1],X,Y[,1])
 names(ds)[1] <- names(subject)[1]
 names(ds)[length(names(ds))] <- names(Y)[1]
 
-measures <- c('mean','std')
+#measures <- c('mean','std')
 
 # get all mean and std columns
-cols <- names(ds)[grepl("(subjectid)|(mean)|(std)|(DataGroup)",names(ds))]
+#cols <- names(ds)[grepl("(subjectid)|(mean)|(std)|(DataGroup)",names(ds))]
 
-match(cols,names(ds))
+#match(cols,names(ds))
 
-select(ds,(match(cols,names(ds))))
+#select(ds,(match(cols,names(ds))))
 
 
-select(ds,subjectid,contains("mean"),contains("std"))
+#ds %>% select(subjectid,contains("mean"),contains("std")) %>% 
+#    dplyr::group_by(subjectid) %>% dplyr::summarize(contains("mean"),contains("std"))
+
+
+body_acc_x_test <- read.delim("./UCI HAR Dataset/test/Inertial Signals/body_acc_x_test.txt",sep="")
+body_acc_y_test <- read.delim("./UCI HAR Dataset/test/Inertial Signals/body_acc_y_test.txt",sep="")
+body_acc_z_test <- read.delim("./UCI HAR Dataset/test/Inertial Signals/body_acc_z_test.txt",sep="")
+
+body_acc_x_train <- read.delim("./UCI HAR Dataset/train/Inertial Signals/body_acc_x_train.txt",sep="")
+body_acc_y_train <- read.delim("./UCI HAR Dataset/train/Inertial Signals/body_acc_y_train.txt",sep="")
+body_acc_z_train <- read.delim("./UCI HAR Dataset/train/Inertial Signals/body_acc_z_train.txt",sep="")
+
