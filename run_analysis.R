@@ -51,25 +51,36 @@ loadDataSet <- function(fileName, features, name_prefix="") {
     # set sep to "" to mean any number of whitespace
     df <- read.delim(fileName,header=FALSE,sep="")
     
-    # assign feature list - make unique
+    # assign feature list - make unique and add name_prefix
     names(df) = make.names(paste0(name_prefix,features),unique=TRUE)
     
     # create additional feature to store filename
     df[[paste0(name_prefix,"sourceFileName")]] <- fileName
-    # tag rows with 'test' in them with DataGroup=test, else assume 'train'
-    df[[paste0(name_prefix,"DataGroup")]] <- ifelse(grepl('test', fileName),'test',
-                           ifelse(grepl('train',fileName),'train',NA))
+    # tag rows with 'test' in them with (name_prefix)DataGroup='test', 
+    #else 'train' else NA
+    df[[paste0(name_prefix,"DataGroup")]] <- 
+        ifelse(grepl('test', fileName),'test',
+        ifelse(grepl('train',fileName),'train',NA))
+    # tidy up names - remove .. and ... and trim from the end of names
+    names(df) <- gsub("[\\.][\\.]*","\\.",names(df))
+    names(df) <- gsub("[\\.][\\.]*$","",names(df))
     df
 }
 
 # use rbind/lapply to load X and Y datasets from multiple files into X and Y respectively
 X <- do.call(rbind,lapply(X=X_names,FUN=loadDataSet,features=X_features[,2]))
 Y <- do.call(rbind,lapply(X=Y_names,FUN=loadDataSet,features=Y_features))
+
+# load subjects
 subject <- do.call(rbind,lapply(X=subject_names,FUN=loadDataSet,features=subject_features))
+# load activity labels
 activity_labels <- do.call(rbind,lapply(X=activity_names,FUN=loadDataSet,features=activity_features))
 
+# combine Y with activity labels
 activity <- merge(x=Y,y=activity_labels,by="activityid",all=TRUE)
 
+# load inertial signals
+# TODO convert code to use list with cbind
 body_acc_x <- do.call(rbind,lapply(X=body_acc_x_names,FUN=loadDataSet,features=1:128,name_prefix="body_acc_x_"))
 body_acc_y <- do.call(rbind,lapply(X=body_acc_y_names,FUN=loadDataSet,features=1:128,name_prefix="body_acc_y_"))
 body_acc_z <- do.call(rbind,lapply(X=body_acc_z_names,FUN=loadDataSet,features=1:128,name_prefix="body_acc_z_"))
@@ -92,41 +103,27 @@ names(inertial_signals) = c(names(body_acc_x),names(body_acc_y),
                             names(total_acc_x),names(total_acc_y),
                             names(total_acc_z))
 
-
-
-# # tag rows with 'test' in them with DataGroup=test, else assume 'train'
-# X$DataGroup <- ifelse(grepl('test', X$sourceFileName),'test','train')
-# 
-# # tag rows with 'test' in them with DataGroup=test, else assume 'train'
-# Y$DataGroup <- ifelse(grepl('test',Y$sourceFileName),'test','train')
-# 
-# # tag rows with 'test' in them with DataGroup=test, else assume 'train'
-# subject$DataGroup <- ifelse(grepl('test',subject$sourceFileName),'test','train')
-
 # add subjectid to X and activity
 ds_names <- c(names(subject)[1],names(X),c("activityid","activity"))
-#ds <- cbind(subject[,1],X,Y[,1])
 ds <- cbind(subject[,1],X,activity[,c("activityid","activity")])
 
-
-# names(ds)[1] <- names(subject)[1]
-# names(ds)[length(names(ds))] <- names(Y)[1]
 names(ds) <- ds_names
 
+# add inertial signals vectors
 ds <- cbind(ds,inertial_signals)
 names(ds) <- c(ds_names,names(inertial_signals))
 
 
-#measures <- c('mean','std')
+# create output data frame
+# group by subjectid,activity and average (summarise) all
+# standard deviation (std) or mean calculations 
+# (lower case 'mean.' or mean$)
+# 
+output <- select(ds,subjectid,activity,
+                 matches("((std)|(mean))([\\.]|$)",ignore.case=FALSE)) %>% 
+    dplyr::group_by(subjectid,activity)  %>% dplyr::summarise_each(funs(mean))
+    
 
-# get all mean and std columns
-#cols <- names(ds)[grepl("(subjectid)|(mean)|(std)|(DataGroup)",names(ds))]
-
-#match(cols,names(ds))
-
-#select(ds,(match(cols,names(ds))))
-
-
-#ds %>% select(subjectid,contains("mean"),contains("std")) %>% 
-#    dplyr::group_by(subjectid) %>% dplyr::summarize(contains("mean"),contains("std"))
-
+#%>% filter(complete.cases(.)) 
+   
+write.csv(output,"./output.csv",row.names=FALSE)
