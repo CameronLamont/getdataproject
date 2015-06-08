@@ -11,15 +11,16 @@
 
 library(stringr)
 library(dplyr)
-#library(data.table)
 
 # read in X data set feature list
 X_features <- read.delim("./UCI HAR Dataset/features.txt",header=FALSE,sep=" ")
+# convert lowercase t prefixed columns to TimeDomainSignal
+X_features[,2] <- gsub("^t","TimeDomainSignal.",X_features[,2])
+# convert lowercase f prefixed columns to FrequencyDomainSignal
+X_features[,2] <- gsub("^f","FrequencyDomainSignal.",X_features[,2])
 
 # setup input files for X and Y data sets 
-#X_names <- c("./UCI HAR Dataset/test/X_test.txt","./UCI HAR Dataset/train/X_train.txt")
 X_names <- dir("./UCI HAR Dataset",pattern="^[Xx].*\\.txt",full.names=TRUE,recursive=TRUE)
-#Y_names <- c("./UCI HAR Dataset/test/Y_test.txt","./UCI HAR Dataset/train/Y_train.txt")
 Y_names <- dir("./UCI HAR Dataset",pattern="^[Yy].*\\.txt",full.names=TRUE,recursive=TRUE)
 
 # create single feature list for Y data set
@@ -124,6 +125,5 @@ output <- select(ds,subjectid,activity,
     dplyr::group_by(subjectid,activity)  %>% dplyr::summarise_each(funs(mean))
     
 
-#%>% filter(complete.cases(.)) 
-   
-write.csv(output,"./output.csv",row.names=FALSE)
+# output csv 'output<Sys.time>.csv'
+write.csv(output,paste0("./output",format(Sys.time(),"%Y%m%d_%H%M"),".csv"),row.names=FALSE)
