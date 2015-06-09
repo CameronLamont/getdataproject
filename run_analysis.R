@@ -161,3 +161,8 @@ print(paste(Sys.time(),"Writing Output File",outputFileName))
 # output txt 'output<Sys.time>.txt'
 write.table(output,outputFileName,row.names=FALSE)
 print(paste(Sys.time(),"Done"))
+
+# library(knitr)
+# kable(names(ds), format="markdown",col.names=c("column name"))
+# kable(names(output), format="markdown",col.names=c("column name"))
+
