@@ -13,7 +13,7 @@ Project URL: http://archive.ics.uci.edu/ml/datasets/Human+Activity+Recognition+U
 
 ## run_analysis.R - main script
 
-## output<YYYMMDD_HHNN>.txt
+## output[YYYMMDD_HHNN].txt
 
 ## CodeBook.md - Codebook description
 

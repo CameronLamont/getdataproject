@@ -3,7 +3,7 @@ title: "Code Book"
 output: html_document
 ---
 
-#output<YYYMMDD_HHNN>.txt
+#output[YYYMMDD_HHNN].txt
 
 |Column name                                    |description                                    |example
 |:----------------------------------------------|:----------------------------------------------|:----
