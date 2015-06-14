@@ -67,7 +67,7 @@ These features were linked and averaged (mean()) with the subject and correspond
 |5 |STANDING            |
 |6 |LAYING              |
 
-##Output File : output[YYYMMDD_HHNN].txt
+##Output File : output[%Y%m%d_%H%M].txt
 |Feature                                                  |Description                                      |
 |:--------------------------------------------------------|-------------------------------------------------|
 |subjectid                                                |Subject ID corresponding to the measurements     |
